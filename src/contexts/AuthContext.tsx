@@ -77,9 +77,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loginWithGoogle = async () => {
     try {
       await signInWithPopup(auth, googleProvider);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login failed", error);
-      alert("Đăng nhập thất bại. Vui lòng thử lại!");
+      alert("Đăng nhập thất bại! Lỗi: " + error.message);
     }
   };
 
