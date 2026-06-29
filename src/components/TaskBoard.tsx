@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react';
 import { collection, query, onSnapshot, orderBy, doc, updateDoc, getDocs } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import type { Task, UserProfile } from '../types';
-import { Clock, CheckCircle, AlertCircle, PlayCircle, MessageSquare, CalendarClock, Trash2, Edit2 } from 'lucide-react';
+import { Clock, CheckCircle, AlertCircle, PlayCircle, MessageSquare, CalendarClock, Trash2, Edit2, History } from 'lucide-react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import CountdownTimer from './CountdownTimer';
 import TaskNoteModal from './TaskNoteModal';
 import ExtendDeadlineModal from './ExtendDeadlineModal';
 import EditTaskModal from './EditTaskModal';
+import TaskHistoryModal from './TaskHistoryModal';
 
 interface Props {
   currentUser: UserProfile;
@@ -21,6 +22,7 @@ export default function TaskBoard({ currentUser }: Props) {
   const [noteModalTaskId, setNoteModalTaskId] = useState<string | null>(null);
   const [extendModalTaskId, setExtendModalTaskId] = useState<string | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [historyModalTaskId, setHistoryModalTaskId] = useState<string | null>(null);
   const isAdmin = currentUser.role === 'admin';
 
   useEffect(() => {
@@ -52,19 +54,19 @@ export default function TaskBoard({ currentUser }: Props) {
 
   const handleReceiveTask = async (taskId: string) => {
     if(window.confirm("Xác nhận bắt đầu nhận công việc này?")) {
-      await updateDoc(doc(db, 'tasks', taskId), { status: 'in_progress' });
+      await updateDoc(doc(db, 'tasks', taskId), { status: 'in_progress', receivedAt: Date.now() });
     }
   };
   
   const handleCompleteTask = async (taskId: string) => {
-    if(window.confirm("Báo cáo hoàn thành công việc này lên Trưởng khoa?")) {
-      await updateDoc(doc(db, 'tasks', taskId), { status: 'pending_approval' });
+    if(window.confirm("Xác nhận đã hoàn thành công việc?")) {
+      await updateDoc(doc(db, 'tasks', taskId), { status: 'pending_approval', completedAt: Date.now() });
     }
   };
 
   const handleAdminApproveTask = async (taskId: string) => {
     if(window.confirm("Duyệt hoàn thành công việc này?")) {
-      await updateDoc(doc(db, 'tasks', taskId), { status: 'completed', completedAt: Date.now() });
+      await updateDoc(doc(db, 'tasks', taskId), { status: 'completed', approvedAt: Date.now() });
     }
   };
 
@@ -80,7 +82,7 @@ export default function TaskBoard({ currentUser }: Props) {
           </span>
           <div className="flex flex-col items-end gap-1">
             <span className={`text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1 ${isOverdue ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-slate-50 text-slate-500 border border-slate-200'}`}>
-              <Clock size={12}/> {format(task.deadline, 'HH:mm - dd/MM', { locale: vi })}
+              <Clock size={12}/> {format(task.deadline, 'HH:mm - dd/MM/yyyy', { locale: vi })}
             </span>
             <CountdownTimer deadline={task.deadline} status={task.status} />
           </div>
@@ -113,13 +115,20 @@ export default function TaskBoard({ currentUser }: Props) {
               </div>
             )}
           </div>
-          <div className="flex gap-1">
+          <div className="flex gap-1 flex-wrap">
             <button 
               onClick={() => setNoteModalTaskId(task.id)}
               className={`p-1.5 rounded-md flex items-center gap-1 text-xs font-bold border transition-colors ${task.notes ? 'bg-yellow-50 text-yellow-700 border-yellow-200 hover:bg-yellow-100' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'}`}
               title="Ghi chú công việc"
             >
               <MessageSquare size={14} /> {task.notes ? 'Sửa ghi chú' : 'Thêm ghi chú'}
+            </button>
+            <button 
+              onClick={() => setHistoryModalTaskId(task.id)}
+              className="p-1.5 rounded-md flex items-center gap-1 text-xs font-bold border bg-white text-slate-600 border-slate-200 hover:bg-slate-50 transition-colors"
+              title="Lịch sử cập nhật"
+            >
+              <History size={14} /> Lịch sử
             </button>
             {isAdmin && task.status !== 'completed' && (
               <>
@@ -238,6 +247,12 @@ export default function TaskBoard({ currentUser }: Props) {
         onClose={() => setEditingTask(null)}
         adminId={currentUser.uid}
         task={editingTask}
+      />
+
+      <TaskHistoryModal 
+        isOpen={!!historyModalTaskId}
+        onClose={() => setHistoryModalTaskId(null)}
+        task={tasks.find(t => t.id === historyModalTaskId) || null}
       />
     </>
   );

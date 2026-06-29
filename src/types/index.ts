@@ -31,6 +31,8 @@ export interface Task {
   deadline: number; // Timestamp
   status: TaskStatus;
   notes: string;
-  completedAt?: number;
+  completedAt?: number; // Khi nhân viên báo cáo hoàn thành
   isDeleted?: boolean;
+  receivedAt?: number; // Khi nhân viên bắt đầu nhận việc
+  approvedAt?: number; // Khi sếp duyệt
 }
