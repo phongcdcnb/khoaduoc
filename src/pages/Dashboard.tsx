@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { LogOut, Plus, Users, LayoutDashboard } from 'lucide-react';
+import { LogOut, Plus, Users, LayoutDashboard, Edit2 } from 'lucide-react';
 import UserManagement from '../components/UserManagement';
 import TaskBoard from '../components/TaskBoard';
 import CreateTaskModal from '../components/CreateTaskModal';
+import EditProfileModal from '../components/EditProfileModal';
 
 const Dashboard = () => {
   const { profile, logout } = useAuth();
   const [activeTab, setActiveTab] = useState<'tasks' | 'users'>('tasks');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
   const isAdmin = profile?.role === 'admin';
 
   if (!profile) return null;
@@ -49,12 +51,21 @@ const Dashboard = () => {
             
             <div className="h-6 sm:h-8 w-px bg-slate-200 hidden sm:block"></div>
             
-            <div className="flex items-center gap-2 sm:gap-3">
+            <div 
+              onClick={() => setIsEditProfileOpen(true)}
+              className="flex items-center gap-2 sm:gap-3 cursor-pointer hover:bg-slate-50 p-1 sm:p-2 rounded-xl transition-colors group"
+              title="Chỉnh sửa thông tin"
+            >
               <div className="hidden sm:block text-right">
-                <p className="text-sm font-black text-slate-800 leading-none">{profile.displayName}</p>
+                <p className="text-sm font-black text-slate-800 leading-none group-hover:text-primary-700 transition-colors">{profile.displayName}</p>
                 <p className="text-xs font-semibold text-primary-600 mt-1">{profile.position || 'Nhân viên'}</p>
               </div>
-              <img src={profile.avatarUrl || 'https://www.gravatar.com/avatar/?d=mp'} alt="Avatar" className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 border-slate-200 shadow-sm" />
+              <div className="relative">
+                <img src={profile.avatarUrl || 'https://www.gravatar.com/avatar/?d=mp'} alt="Avatar" className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 border-slate-200 shadow-sm group-hover:border-primary-400 transition-colors" />
+                <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5 shadow-sm border border-slate-200 text-slate-500 group-hover:text-primary-600 hidden sm:block">
+                  <Edit2 size={10} />
+                </div>
+              </div>
             </div>
             
             <button 
@@ -81,6 +92,11 @@ const Dashboard = () => {
         onClose={() => setIsCreateModalOpen(false)} 
         adminId={profile.uid}
         onTaskCreated={() => {}}
+      />
+
+      <EditProfileModal 
+        isOpen={isEditProfileOpen}
+        onClose={() => setIsEditProfileOpen(false)}
       />
     </div>
   );
