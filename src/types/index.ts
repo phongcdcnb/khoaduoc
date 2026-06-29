@@ -19,6 +19,13 @@ export type TaskStatus = 'assigned' | 'in_progress' | 'pending_approval' | 'comp
 // pending_approval: Chờ duyệt hoàn thành
 // completed: Đã hoàn thành
 
+export interface ProgressUpdate {
+  id: string;
+  text: string;
+  timestamp: number;
+  uid: string;
+}
+
 export interface Task {
   id: string;
   taskNumber: number;
@@ -35,4 +42,5 @@ export interface Task {
   isDeleted?: boolean;
   receivedAt?: number; // Khi nhân viên bắt đầu nhận việc
   approvedAt?: number; // Khi sếp duyệt
+  progressUpdates?: ProgressUpdate[]; // Các báo cáo tiến độ
 }

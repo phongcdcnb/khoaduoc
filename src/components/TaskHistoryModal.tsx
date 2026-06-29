@@ -1,7 +1,8 @@
 import type { Task } from '../types';
-import { X, CheckCircle, Clock, PlayCircle, ShieldCheck } from 'lucide-react';
+import { X, CheckCircle, Clock, PlayCircle, ShieldCheck, TrendingUp } from 'lucide-react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
+import { useAuth } from '../contexts/AuthContext';
 
 interface Props {
   isOpen: boolean;
@@ -10,17 +11,25 @@ interface Props {
 }
 
 export default function TaskHistoryModal({ isOpen, onClose, task }: Props) {
+  const { users } = useAuth();
   if (!isOpen || !task) return null;
+
+  const usersMap = users.reduce((acc, curr) => {
+    acc[curr.uid] = curr.displayName;
+    return acc;
+  }, {} as Record<string, string>);
 
   const TimelineItem = ({ 
     icon: Icon, 
     title, 
+    description,
     timestamp, 
     colorClass, 
     isLast 
   }: { 
     icon: any, 
     title: string, 
+    description?: string,
     timestamp?: number, 
     colorClass: string,
     isLast?: boolean
@@ -34,7 +43,8 @@ export default function TaskHistoryModal({ isOpen, onClose, task }: Props) {
         </div>
         <div className="bg-slate-50 border border-slate-100 p-3 rounded-xl">
           <h4 className="font-bold text-slate-700 text-sm">{title}</h4>
-          <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
+          {description && <p className="text-sm text-slate-800 mt-1 whitespace-pre-wrap bg-white p-2 rounded border border-slate-100">{description}</p>}
+          <p className="text-xs text-slate-500 mt-1.5 flex items-center gap-1">
             <Clock size={12} />
             {format(timestamp, 'HH:mm - dd/MM/yyyy', { locale: vi })}
           </p>
@@ -42,6 +52,36 @@ export default function TaskHistoryModal({ isOpen, onClose, task }: Props) {
       </div>
     );
   };
+
+  // Xây dựng mảng sự kiện
+  const events: Array<{
+    id: string;
+    icon: any;
+    title: string;
+    timestamp: number;
+    colorClass: string;
+    description?: string;
+  }> = [];
+  if (task.assignedAt) events.push({ id: 'assigned', icon: Clock, title: 'Sếp giao việc', timestamp: task.assignedAt, colorClass: 'bg-slate-500' });
+  if (task.receivedAt) events.push({ id: 'received', icon: PlayCircle, title: 'Nhân viên nhận việc', timestamp: task.receivedAt, colorClass: 'bg-blue-500' });
+  
+  if (task.progressUpdates) {
+    task.progressUpdates.forEach(update => {
+      events.push({
+        id: update.id,
+        icon: TrendingUp,
+        title: `${usersMap[update.uid] || 'Nhân viên'} báo cáo tiến độ`,
+        description: update.text,
+        timestamp: update.timestamp,
+        colorClass: 'bg-teal-500'
+      });
+    });
+  }
+
+  if (task.completedAt) events.push({ id: 'completed', icon: CheckCircle, title: 'Nhân viên báo cáo hoàn thành', timestamp: task.completedAt, colorClass: 'bg-orange-500' });
+  if (task.approvedAt) events.push({ id: 'approved', icon: ShieldCheck, title: 'Sếp duyệt hoàn tất', timestamp: task.approvedAt, colorClass: 'bg-emerald-500' });
+
+  events.sort((a, b) => a.timestamp - b.timestamp);
 
   return (
     <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50">
@@ -55,34 +95,17 @@ export default function TaskHistoryModal({ isOpen, onClose, task }: Props) {
         </div>
         
         <div className="py-2">
-          <TimelineItem 
-            icon={Clock} 
-            title="Sếp giao việc" 
-            timestamp={task.assignedAt} 
-            colorClass="bg-slate-500" 
-            isLast={!task.receivedAt && !task.completedAt && !task.approvedAt}
-          />
-          <TimelineItem 
-            icon={PlayCircle} 
-            title="Nhân viên nhận việc" 
-            timestamp={task.receivedAt} 
-            colorClass="bg-blue-500" 
-            isLast={!task.completedAt && !task.approvedAt}
-          />
-          <TimelineItem 
-            icon={CheckCircle} 
-            title="Nhân viên báo cáo hoàn thành" 
-            timestamp={task.completedAt} 
-            colorClass="bg-orange-500" 
-            isLast={!task.approvedAt}
-          />
-          <TimelineItem 
-            icon={ShieldCheck} 
-            title="Sếp duyệt hoàn tất" 
-            timestamp={task.approvedAt} 
-            colorClass="bg-emerald-500" 
-            isLast={true}
-          />
+          {events.map((event, index) => (
+            <TimelineItem 
+              key={event.id}
+              icon={event.icon} 
+              title={event.title} 
+              description={event.description}
+              timestamp={event.timestamp} 
+              colorClass={event.colorClass} 
+              isLast={index === events.length - 1}
+            />
+          ))}
         </div>
         
         <button onClick={onClose} className="w-full bg-slate-100 text-slate-700 font-bold py-3 rounded-xl hover:bg-slate-200 mt-6 transition-all text-sm">
