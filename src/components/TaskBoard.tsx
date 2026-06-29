@@ -38,7 +38,22 @@ export default function TaskBoard({ currentUser }: Props) {
 
     const q = query(collection(db, 'tasks'), orderBy('taskNumber', 'desc'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const fetchedTasks = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Task));
+      let fetchedTasks = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Task));
+      
+      // Tính toán lại Số thứ tự (taskNumber) động dựa trên các công việc chưa bị xóa
+      // Sắp xếp theo thời gian giao việc (assignedAt) tăng dần (cũ nhất -> mới nhất)
+      const activeSorted = fetchedTasks
+        .filter(t => !t.isDeleted)
+        .sort((a, b) => a.assignedAt - b.assignedAt);
+        
+      fetchedTasks = fetchedTasks.map(task => {
+        if (!task.isDeleted) {
+          // Ghi đè taskNumber trong bộ nhớ bằng số thứ tự mới
+          task.taskNumber = activeSorted.findIndex(t => t.id === task.id) + 1;
+        }
+        return task;
+      });
+
       setTasks(fetchedTasks);
     });
     return unsubscribe;
