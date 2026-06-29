@@ -41,7 +41,7 @@ export default function TaskBoard({ currentUser }: Props) {
     return unsubscribe;
   }, []);
 
-  const visibleTasks = isAdmin ? tasks : tasks.filter(t => t.assigneeId === currentUser.uid);
+  const visibleTasks = isAdmin ? tasks : tasks.filter(t => t.assigneeId === currentUser.uid || (t.collaboratorIds && t.collaboratorIds.includes(currentUser.uid)));
 
   const handleReceiveTask = async (taskId: string) => {
     if(window.confirm("Xác nhận bắt đầu nhận công việc này?")) {
@@ -83,9 +83,19 @@ export default function TaskBoard({ currentUser }: Props) {
         <p className="text-slate-600 text-sm mb-4 line-clamp-3 bg-slate-50 p-3 rounded-lg border border-slate-100 flex-grow">{task.description}</p>
         
         <div className="flex items-center gap-2 mb-4 justify-between">
-          <div>
-            <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-1 rounded-md">Phụ trách:</span>
-            <span className="text-sm font-bold text-primary-700 ml-2">{usersMap[task.assigneeId] || 'Đang tải...'}</span>
+          <div className="flex flex-col gap-2">
+            <div>
+              <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-1 rounded-md">Phụ trách:</span>
+              <span className="text-sm font-bold text-primary-700 ml-2">{usersMap[task.assigneeId] || 'Đang tải...'}</span>
+            </div>
+            {task.collaboratorIds && task.collaboratorIds.length > 0 && (
+              <div>
+                <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-1 rounded-md">Phối hợp:</span>
+                <span className="text-xs font-medium text-slate-600 ml-2">
+                  {task.collaboratorIds.map(id => usersMap[id]).filter(Boolean).join(', ')}
+                </span>
+              </div>
+            )}
           </div>
           <div className="flex gap-1">
             <button 

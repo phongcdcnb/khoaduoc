@@ -15,10 +15,19 @@ export default function CreateTaskModal({ isOpen, onClose, adminId, onTaskCreate
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [assigneeId, setAssigneeId] = useState('');
+  const [collaboratorIds, setCollaboratorIds] = useState<string[]>([]);
   const [deadlineDate, setDeadlineDate] = useState('');
   const [deadlineTime, setDeadlineTime] = useState('');
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(false);
+
+  const handleToggleCollaborator = (uid: string) => {
+    if (collaboratorIds.includes(uid)) {
+      setCollaboratorIds(collaboratorIds.filter(id => id !== uid));
+    } else {
+      setCollaboratorIds([...collaboratorIds, uid]);
+    }
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -47,7 +56,7 @@ export default function CreateTaskModal({ isOpen, onClose, adminId, onTaskCreate
         title,
         description,
         assigneeId,
-        collaboratorIds: [],
+        collaboratorIds,
         assignedBy: adminId,
         assignedAt: Date.now(),
         deadline: deadlineDateObj.getTime(),
@@ -57,6 +66,7 @@ export default function CreateTaskModal({ isOpen, onClose, adminId, onTaskCreate
       setTitle('');
       setDescription('');
       setAssigneeId('');
+      setCollaboratorIds([]);
       onTaskCreated();
       onClose();
     } catch (error) {
@@ -87,13 +97,38 @@ export default function CreateTaskModal({ isOpen, onClose, adminId, onTaskCreate
           </div>
           <div>
             <label className="block text-sm font-bold text-slate-700 mb-1">Giao cho (Người phụ trách)</label>
-            <select required value={assigneeId} onChange={e => setAssigneeId(e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all">
+            <select required value={assigneeId} onChange={e => {
+              setAssigneeId(e.target.value);
+              setCollaboratorIds(prev => prev.filter(id => id !== e.target.value));
+            }} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all">
               <option value="">-- Chọn nhân viên --</option>
               {users.map(u => (
                 <option key={u.uid} value={u.uid}>{u.displayName} ({u.position})</option>
               ))}
             </select>
           </div>
+          {assigneeId && (
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-1">Người phối hợp (Tuỳ chọn)</label>
+              <div className="max-h-32 overflow-y-auto bg-slate-50 border border-slate-200 rounded-xl p-2 space-y-1">
+                {users.filter(u => u.uid !== assigneeId).length === 0 ? (
+                  <p className="text-sm text-slate-400 p-2 italic">Không có nhân sự khác</p>
+                ) : (
+                  users.filter(u => u.uid !== assigneeId).map(u => (
+                    <label key={u.uid} className="flex items-center gap-3 p-2 hover:bg-slate-100 rounded-lg cursor-pointer transition-colors">
+                      <input 
+                        type="checkbox" 
+                        checked={collaboratorIds.includes(u.uid)}
+                        onChange={() => handleToggleCollaborator(u.uid)}
+                        className="w-4 h-4 text-primary-600 rounded border-slate-300 focus:ring-primary-500"
+                      />
+                      <span className="text-sm text-slate-700 font-medium">{u.displayName} <span className="text-xs text-slate-500">({u.position})</span></span>
+                    </label>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-1">Ngày hạn chót</label>
