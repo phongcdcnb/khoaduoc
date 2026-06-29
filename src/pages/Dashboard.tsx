@@ -73,22 +73,25 @@ const Dashboard = () => {
               <button 
                 onClick={() => setActiveTab('tasks')}
                 className={`px-3 py-2 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm transition-all flex items-center gap-1 sm:gap-2 ${activeTab === 'tasks' ? 'bg-primary-600 text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'}`}
+                title="Bảng việc"
               >
-                <LayoutDashboard size={16} className="sm:w-5 sm:h-5" /> Bảng việc
+                <LayoutDashboard size={18} className="sm:w-5 sm:h-5" /> <span className="hidden sm:inline">Bảng việc</span>
               </button>
               {isAdmin && (
                 <>
                   <button 
                     onClick={() => setActiveTab('users')}
                     className={`px-3 py-2 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm transition-all flex items-center gap-1 sm:gap-2 ${activeTab === 'users' ? 'bg-primary-600 text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'}`}
+                    title="Nhân sự"
                   >
-                    <Users size={16} className="sm:w-5 sm:h-5" /> Nhân sự
+                    <Users size={18} className="sm:w-5 sm:h-5" /> <span className="hidden sm:inline">Nhân sự</span>
                   </button>
                   <button 
                     onClick={() => setActiveTab('trash')}
                     className={`px-3 py-2 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm transition-all flex items-center gap-1 sm:gap-2 ${activeTab === 'trash' ? 'bg-red-600 text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'}`}
+                    title="Thùng rác"
                   >
-                    <Trash2 size={16} className="sm:w-5 sm:h-5" /> Thùng rác
+                    <Trash2 size={18} className="sm:w-5 sm:h-5" /> <span className="hidden sm:inline">Thùng rác</span>
                   </button>
                 </>
               )}
