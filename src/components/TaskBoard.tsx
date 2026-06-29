@@ -100,64 +100,68 @@ export default function TaskBoard({ currentUser }: Props) {
           </div>
         )}
 
-        <div className="flex items-center gap-2 mb-4 justify-between">
-          <div className="flex flex-col gap-2">
-            <div>
-              <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-1 rounded-md">Phụ trách:</span>
-              <span className="text-sm font-bold text-primary-700 ml-2">{usersMap[task.assigneeId] || 'Đang tải...'}</span>
+        {/* Người phụ trách & Phối hợp */}
+        <div className="flex flex-col gap-2 mb-4 bg-slate-50 p-3 rounded-xl border border-slate-100">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-slate-500 w-[70px]">Phụ trách:</span>
+            <span className="text-sm font-bold text-primary-700">{usersMap[task.assigneeId] || 'Đang tải...'}</span>
+          </div>
+          {task.collaboratorIds && task.collaboratorIds.length > 0 && (
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-xs font-semibold text-slate-500 w-[70px]">Phối hợp:</span>
+              <span className="text-sm font-medium text-slate-600 leading-tight">
+                {task.collaboratorIds.map(id => usersMap[id]).filter(Boolean).join(', ')}
+              </span>
             </div>
-            {task.collaboratorIds && task.collaboratorIds.length > 0 && (
-              <div>
-                <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-1 rounded-md">Phối hợp:</span>
-                <span className="text-xs font-medium text-slate-600 ml-2">
-                  {task.collaboratorIds.map(id => usersMap[id]).filter(Boolean).join(', ')}
-                </span>
-              </div>
-            )}
-          </div>
-          <div className="flex gap-1 flex-wrap">
-            <button 
-              onClick={() => setNoteModalTaskId(task.id)}
-              className={`p-1.5 rounded-md flex items-center gap-1 text-xs font-bold border transition-colors ${task.notes ? 'bg-yellow-50 text-yellow-700 border-yellow-200 hover:bg-yellow-100' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'}`}
-              title="Ghi chú công việc"
-            >
-              <MessageSquare size={14} /> {task.notes ? 'Sửa ghi chú' : 'Thêm ghi chú'}
-            </button>
-            <button 
-              onClick={() => setHistoryModalTaskId(task.id)}
-              className="p-1.5 rounded-md flex items-center gap-1 text-xs font-bold border bg-white text-slate-600 border-slate-200 hover:bg-slate-50 transition-colors"
-              title="Lịch sử cập nhật"
-            >
-              <History size={14} /> Lịch sử
-            </button>
-            {isAdmin && task.status !== 'completed' && (
-              <>
-                <button 
-                  onClick={() => setEditingTask(task)}
-                  className="p-1.5 rounded-md flex items-center gap-1 text-xs font-bold border bg-white text-blue-600 border-blue-200 hover:bg-blue-50 transition-colors"
-                  title="Sửa công việc"
-                >
-                  <Edit2 size={14} /> Sửa
-                </button>
-                <button 
-                  onClick={() => setExtendModalTaskId(task.id)}
-                  className="p-1.5 rounded-md flex items-center gap-1 text-xs font-bold border bg-white text-orange-600 border-orange-200 hover:bg-orange-50 transition-colors"
-                  title="Gia hạn Deadline"
-                >
-                  <CalendarClock size={14} /> Gia hạn
-                </button>
-              </>
-            )}
-            {isAdmin && (
+          )}
+        </div>
+
+        {/* Nút thao tác phụ */}
+        <div className="flex flex-wrap gap-2 mb-4">
+          <button 
+            onClick={() => setNoteModalTaskId(task.id)}
+            className={`flex-1 min-w-[80px] py-2 px-1 rounded-lg flex items-center justify-center gap-1.5 text-xs font-bold border transition-colors ${task.notes ? 'bg-yellow-50 text-yellow-700 border-yellow-200 hover:bg-yellow-100' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'}`}
+            title="Ghi chú công việc"
+          >
+            <MessageSquare size={14} /> Ghi chú
+          </button>
+          
+          <button 
+            onClick={() => setHistoryModalTaskId(task.id)}
+            className="flex-1 min-w-[80px] py-2 px-1 rounded-lg flex items-center justify-center gap-1.5 text-xs font-bold border bg-white text-slate-600 border-slate-200 hover:bg-slate-50 transition-colors"
+            title="Lịch sử cập nhật"
+          >
+            <History size={14} /> Lịch sử
+          </button>
+
+          {isAdmin && task.status !== 'completed' && (
+            <>
               <button 
-                onClick={() => handleMoveToTrash(task.id)}
-                className="p-1.5 rounded-md flex items-center gap-1 text-xs font-bold border bg-white text-red-600 border-red-200 hover:bg-red-50 transition-colors"
-                title="Xóa công việc (Đưa vào Thùng rác)"
+                onClick={() => setEditingTask(task)}
+                className="flex-1 min-w-[80px] py-2 px-1 rounded-lg flex items-center justify-center gap-1.5 text-xs font-bold border bg-white text-blue-600 border-blue-200 hover:bg-blue-50 transition-colors"
+                title="Sửa công việc"
               >
-                <Trash2 size={14} /> Xóa
+                <Edit2 size={14} /> Sửa
               </button>
-            )}
-          </div>
+              <button 
+                onClick={() => setExtendModalTaskId(task.id)}
+                className="flex-1 min-w-[80px] py-2 px-1 rounded-lg flex items-center justify-center gap-1.5 text-xs font-bold border bg-white text-orange-600 border-orange-200 hover:bg-orange-50 transition-colors"
+                title="Gia hạn Deadline"
+              >
+                <CalendarClock size={14} /> Gia hạn
+              </button>
+            </>
+          )}
+
+          {isAdmin && (
+            <button 
+              onClick={() => handleMoveToTrash(task.id)}
+              className="flex-1 min-w-[80px] py-2 px-1 rounded-lg flex items-center justify-center gap-1.5 text-xs font-bold border bg-white text-red-600 border-red-200 hover:bg-red-50 transition-colors"
+              title="Xóa công việc"
+            >
+              <Trash2 size={14} /> Xóa
+            </button>
+          )}
         </div>
 
         <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-3 mt-auto">
