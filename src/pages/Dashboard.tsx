@@ -92,7 +92,7 @@ const Dashboard = () => {
         {activeTab === 'users' && isAdmin ? (
           <UserManagement />
         ) : activeTab === 'trash' && isAdmin ? (
-          <TrashBoard currentUser={profile} />
+          <TrashBoard />
         ) : (
           <TaskBoard currentUser={profile} />
         )}

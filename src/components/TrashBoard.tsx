@@ -1,16 +1,12 @@
 import { useEffect, useState } from 'react';
 import { collection, query, onSnapshot, orderBy, doc, updateDoc, deleteDoc, getDocs } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import type { Task, UserProfile } from '../types';
+import type { Task } from '../types';
 import { RefreshCcw, Trash2, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 
-interface Props {
-  currentUser: UserProfile;
-}
-
-export default function TrashBoard({ currentUser }: Props) {
+export default function TrashBoard() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [usersMap, setUsersMap] = useState<Record<string, string>>({});
 
@@ -77,6 +73,10 @@ export default function TrashBoard({ currentUser }: Props) {
               </div>
               
               <h3 className="font-bold text-slate-700 text-base leading-tight mb-2 line-clamp-2">{task.title}</h3>
+              
+              <div className="mb-4 text-sm text-slate-600 bg-white p-2 rounded-lg border border-slate-100">
+                <span className="font-semibold text-slate-500 text-xs">Phụ trách:</span> <span className="font-bold">{usersMap[task.assigneeId] || '...'}</span>
+              </div>
               
               <div className="mt-auto pt-4 flex gap-2">
                 <button 
