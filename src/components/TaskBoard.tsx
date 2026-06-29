@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react';
 import { collection, query, onSnapshot, orderBy, doc, updateDoc, getDocs } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import type { Task, UserProfile } from '../types';
-import { Clock, CheckCircle, AlertCircle, PlayCircle, MessageSquare, CalendarClock, Trash2 } from 'lucide-react';
+import { Clock, CheckCircle, AlertCircle, PlayCircle, MessageSquare, CalendarClock, Trash2, Edit2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import CountdownTimer from './CountdownTimer';
 import TaskNoteModal from './TaskNoteModal';
 import ExtendDeadlineModal from './ExtendDeadlineModal';
+import EditTaskModal from './EditTaskModal';
 
 interface Props {
   currentUser: UserProfile;
@@ -19,7 +20,7 @@ export default function TaskBoard({ currentUser }: Props) {
   
   const [noteModalTaskId, setNoteModalTaskId] = useState<string | null>(null);
   const [extendModalTaskId, setExtendModalTaskId] = useState<string | null>(null);
-
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
   const isAdmin = currentUser.role === 'admin';
 
   useEffect(() => {
@@ -121,13 +122,22 @@ export default function TaskBoard({ currentUser }: Props) {
               <MessageSquare size={14} /> {task.notes ? 'Sửa ghi chú' : 'Thêm ghi chú'}
             </button>
             {isAdmin && task.status !== 'completed' && (
-              <button 
-                onClick={() => setExtendModalTaskId(task.id)}
-                className="p-1.5 rounded-md flex items-center gap-1 text-xs font-bold border bg-white text-orange-600 border-orange-200 hover:bg-orange-50 transition-colors"
-                title="Gia hạn Deadline"
-              >
-                <CalendarClock size={14} /> Gia hạn
-              </button>
+              <>
+                <button 
+                  onClick={() => setEditingTask(task)}
+                  className="p-1.5 rounded-md flex items-center gap-1 text-xs font-bold border bg-white text-blue-600 border-blue-200 hover:bg-blue-50 transition-colors"
+                  title="Sửa công việc"
+                >
+                  <Edit2 size={14} /> Sửa
+                </button>
+                <button 
+                  onClick={() => setExtendModalTaskId(task.id)}
+                  className="p-1.5 rounded-md flex items-center gap-1 text-xs font-bold border bg-white text-orange-600 border-orange-200 hover:bg-orange-50 transition-colors"
+                  title="Gia hạn Deadline"
+                >
+                  <CalendarClock size={14} /> Gia hạn
+                </button>
+              </>
             )}
             {isAdmin && (
               <button 
@@ -218,9 +228,16 @@ export default function TaskBoard({ currentUser }: Props) {
         onClose={() => setNoteModalTaskId(null)} 
       />
       <ExtendDeadlineModal 
-        isOpen={!!extendModalTaskId} 
-        taskId={extendModalTaskId!} 
-        onClose={() => setExtendModalTaskId(null)} 
+        isOpen={!!extendModalTaskId}
+        onClose={() => setExtendModalTaskId(null)}
+        taskId={extendModalTaskId || ''}
+      />
+
+      <EditTaskModal 
+        isOpen={!!editingTask}
+        onClose={() => setEditingTask(null)}
+        adminId={currentUser.uid}
+        task={editingTask}
       />
     </>
   );

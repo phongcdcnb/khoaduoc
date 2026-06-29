@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { LogOut, Plus, Users, LayoutDashboard, Edit2, Trash2 } from 'lucide-react';
 import UserManagement from '../components/UserManagement';
@@ -6,6 +6,9 @@ import TaskBoard from '../components/TaskBoard';
 import CreateTaskModal from '../components/CreateTaskModal';
 import EditProfileModal from '../components/EditProfileModal';
 import TrashBoard from '../components/TrashBoard';
+import { collection, query, onSnapshot } from 'firebase/firestore';
+import { db } from '../lib/firebase';
+import type { Task } from '../types';
 
 const Dashboard = () => {
   const { profile, logout } = useAuth();
@@ -13,6 +16,50 @@ const Dashboard = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
   const isAdmin = profile?.role === 'admin';
+  const isFirstLoad = useRef(true);
+
+  useEffect(() => {
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!profile) return;
+
+    const q = query(collection(db, 'tasks'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      if (isFirstLoad.current) {
+        isFirstLoad.current = false;
+        return;
+      }
+
+      snapshot.docChanges().forEach((change) => {
+        if (change.doc.metadata.hasPendingWrites) return; // Bỏ qua nếu chính mình là người thay đổi
+
+        const task = change.doc.data() as Task;
+        const isRelated = profile.role === 'admin' || task.assigneeId === profile.uid || (task.collaboratorIds && task.collaboratorIds.includes(profile.uid));
+        
+        if (!isRelated) return;
+
+        if (Notification.permission === 'granted') {
+          if (change.type === 'added') {
+            new Notification('🔔 CÓ VIỆC MỚI', { body: task.title, icon: '/logo192.png' });
+          } else if (change.type === 'modified') {
+            if (task.isDeleted) {
+              new Notification('🗑️ Việc vừa bị xoá', { body: task.title, icon: '/logo192.png' });
+            } else if (task.status === 'completed') {
+              new Notification('✅ Việc đã hoàn thành', { body: task.title, icon: '/logo192.png' });
+            } else {
+              new Notification('📝 Việc vừa cập nhật', { body: task.title, icon: '/logo192.png' });
+            }
+          }
+        }
+      });
+    });
+
+    return () => unsubscribe();
+  }, [profile]);
 
   if (!profile) return null;
 
