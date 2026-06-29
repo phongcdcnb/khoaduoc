@@ -88,6 +88,15 @@ export default function TaskBoard({ currentUser }: Props) {
         <h3 className="font-bold text-slate-800 text-lg leading-tight mb-2">{task.title}</h3>
         <p className="text-slate-600 text-sm mb-4 line-clamp-3 bg-slate-50 p-3 rounded-lg border border-slate-100 flex-grow">{task.description}</p>
         
+        {task.notes && (
+          <div className="mb-4 bg-yellow-50/80 border border-yellow-200 rounded-lg p-3 shadow-sm">
+            <div className="flex items-center gap-1.5 mb-1 text-yellow-800 font-bold text-xs">
+              <MessageSquare size={14} /> GHI CHÚ
+            </div>
+            <p className="text-sm text-yellow-900 whitespace-pre-wrap">{task.notes}</p>
+          </div>
+        )}
+
         <div className="flex items-center gap-2 mb-4 justify-between">
           <div className="flex flex-col gap-2">
             <div>
@@ -106,10 +115,10 @@ export default function TaskBoard({ currentUser }: Props) {
           <div className="flex gap-1">
             <button 
               onClick={() => setNoteModalTaskId(task.id)}
-              className={`p-1.5 rounded-md flex items-center gap-1 text-xs font-bold border transition-colors ${task.notes ? 'bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'}`}
+              className={`p-1.5 rounded-md flex items-center gap-1 text-xs font-bold border transition-colors ${task.notes ? 'bg-yellow-50 text-yellow-700 border-yellow-200 hover:bg-yellow-100' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'}`}
               title="Ghi chú công việc"
             >
-              <MessageSquare size={14} /> {task.notes ? 'Có ghi chú' : 'Ghi chú'}
+              <MessageSquare size={14} /> {task.notes ? 'Sửa ghi chú' : 'Thêm ghi chú'}
             </button>
             {isAdmin && task.status !== 'completed' && (
               <button 
