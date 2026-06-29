@@ -135,42 +135,42 @@ export default function TaskBoard({ currentUser }: Props) {
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
-        <div className="bg-slate-100/70 rounded-3xl p-5 border border-slate-200 flex flex-col">
-          <h2 className="font-black text-slate-800 mb-5 flex items-center justify-between text-lg">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 items-stretch">
+        <div className="bg-slate-100/70 rounded-2xl sm:rounded-3xl p-3 sm:p-5 border border-slate-200 flex flex-col">
+          <h2 className="font-black text-slate-800 mb-4 sm:mb-5 flex items-center justify-between text-base sm:text-lg">
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 bg-blue-500 rounded-full shadow-sm"></span> Vừa Giao Việc
             </div>
-            <span className="bg-white text-slate-600 px-2 py-1 rounded-lg text-sm">{getTasksByStatus('assigned').length}</span>
+            <span className="bg-white text-slate-600 px-2 py-1 rounded-lg text-xs sm:text-sm">{getTasksByStatus('assigned').length}</span>
           </h2>
-          <div className="space-y-4 flex-grow flex flex-col">
+          <div className="space-y-3 sm:space-y-4 flex-grow flex flex-col">
             {getTasksByStatus('assigned').length === 0 && <p className="text-slate-400 text-center text-sm py-4 italic my-auto">Trống</p>}
             {getTasksByStatus('assigned').map(renderTaskCard)}
           </div>
         </div>
 
-        <div className="bg-orange-50/50 rounded-3xl p-5 border border-orange-100 flex flex-col">
-          <h2 className="font-black text-orange-900 mb-5 flex items-center justify-between text-lg">
+        <div className="bg-orange-50/50 rounded-2xl sm:rounded-3xl p-3 sm:p-5 border border-orange-100 flex flex-col">
+          <h2 className="font-black text-orange-900 mb-4 sm:mb-5 flex items-center justify-between text-base sm:text-lg">
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 bg-orange-500 rounded-full shadow-sm animate-pulse"></span> Đang Xử Lý
             </div>
-            <span className="bg-white text-orange-600 px-2 py-1 rounded-lg text-sm">{getTasksByStatus('in_progress').length + getTasksByStatus('pending_approval').length}</span>
+            <span className="bg-white text-orange-600 px-2 py-1 rounded-lg text-xs sm:text-sm">{getTasksByStatus('in_progress').length + getTasksByStatus('pending_approval').length}</span>
           </h2>
-          <div className="space-y-4 flex-grow flex flex-col">
+          <div className="space-y-3 sm:space-y-4 flex-grow flex flex-col">
             {getTasksByStatus('in_progress').map(renderTaskCard)}
             {getTasksByStatus('pending_approval').map(renderTaskCard)}
             {(getTasksByStatus('in_progress').length + getTasksByStatus('pending_approval').length) === 0 && <p className="text-orange-300 text-center text-sm py-4 italic my-auto">Trống</p>}
           </div>
         </div>
 
-        <div className="bg-emerald-50/50 rounded-3xl p-5 border border-emerald-100 flex flex-col">
-          <h2 className="font-black text-emerald-900 mb-5 flex items-center justify-between text-lg">
+        <div className="bg-emerald-50/50 rounded-2xl sm:rounded-3xl p-3 sm:p-5 border border-emerald-100 flex flex-col">
+          <h2 className="font-black text-emerald-900 mb-4 sm:mb-5 flex items-center justify-between text-base sm:text-lg">
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 bg-emerald-500 rounded-full shadow-sm"></span> Đã Hoàn Thành
             </div>
-            <span className="bg-white text-emerald-600 px-2 py-1 rounded-lg text-sm">{getTasksByStatus('completed').length}</span>
+            <span className="bg-white text-emerald-600 px-2 py-1 rounded-lg text-xs sm:text-sm">{getTasksByStatus('completed').length}</span>
           </h2>
-          <div className="space-y-4 flex-grow flex flex-col">
+          <div className="space-y-3 sm:space-y-4 flex-grow flex flex-col">
             {getTasksByStatus('completed').length === 0 && <p className="text-emerald-300 text-center text-sm py-4 italic my-auto">Trống</p>}
             {getTasksByStatus('completed').map(renderTaskCard)}
           </div>

@@ -31,8 +31,8 @@ export default function ExtendDeadlineModal({ isOpen, onClose, taskId }: Props) 
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 animate-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50">
+      <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-4 sm:p-6 animate-in zoom-in-95 duration-200 max-h-[95vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
           <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2"><CalendarClock size={20} className="text-orange-500" /> Gia hạn Deadline</h3>
           <button onClick={onClose} className="p-1 rounded-full hover:bg-slate-100"><X size={20} className="text-slate-500" /></button>
