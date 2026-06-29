@@ -116,13 +116,15 @@ export default function TaskBoard({ currentUser, tasks }: Props) {
             <MessageSquare size={14} /> Ghi chú
           </button>
           
-          <button 
-            onClick={() => setProgressModalTaskId(task.id)}
-            className="flex-1 min-w-[80px] py-2 px-1 rounded-lg flex items-center justify-center gap-1.5 text-xs font-bold border bg-white text-emerald-600 border-emerald-200 hover:bg-emerald-50 transition-colors"
-            title="Báo cáo tiến độ"
-          >
-            <TrendingUp size={14} /> Tiến độ
-          </button>
+          {currentUser.uid === task.assigneeId && task.status !== 'completed' && (
+            <button 
+              onClick={() => setProgressModalTaskId(task.id)}
+              className="flex-1 min-w-[80px] py-2 px-1 rounded-lg flex items-center justify-center gap-1.5 text-xs font-bold border bg-white text-emerald-600 border-emerald-200 hover:bg-emerald-50 transition-colors"
+              title="Báo cáo tiến độ"
+            >
+              <TrendingUp size={14} /> Tiến độ
+            </button>
+          )}
           
           <button 
             onClick={() => setHistoryModalTaskId(task.id)}
