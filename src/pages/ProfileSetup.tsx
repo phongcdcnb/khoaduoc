@@ -2,11 +2,9 @@ import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../lib/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
-import { useNavigate } from 'react-router-dom';
 
 const ProfileSetup = () => {
   const { profile } = useAuth();
-  const navigate = useNavigate();
   const [displayName, setDisplayName] = useState(profile?.displayName || '');
   const [position, setPosition] = useState(profile?.position || '');
   const [loading, setLoading] = useState(false);
