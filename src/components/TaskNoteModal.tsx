@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { X } from 'lucide-react';
@@ -13,6 +13,12 @@ interface Props {
 export default function TaskNoteModal({ isOpen, onClose, taskId, currentNotes }: Props) {
   const [notes, setNotes] = useState(currentNotes || '');
   const [loading, setLoading] = useState(false);
+
+  React.useEffect(() => {
+    if (isOpen) {
+      setNotes(currentNotes || '');
+    }
+  }, [isOpen, currentNotes]);
 
   if (!isOpen) return null;
 
