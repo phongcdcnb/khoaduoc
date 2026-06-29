@@ -100,10 +100,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = async () => {
-    try {
-      await signOut(auth);
-    } catch (error) {
-      console.error("Logout failed", error);
+    if (window.confirm("Bạn có chắc chắn muốn đăng xuất không?")) {
+      try {
+        await signOut(auth);
+      } catch (error) {
+        console.error("Logout failed", error);
+      }
     }
   };
 
