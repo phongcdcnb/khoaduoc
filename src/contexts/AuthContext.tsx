@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged, signInWithPopup, signOut, type User } from 'firebase/auth';
 import { auth, googleProvider, db } from '../lib/firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, collection, onSnapshot } from 'firebase/firestore';
 import type { UserProfile } from '../types';
 
 interface AuthContextType {
@@ -11,6 +11,7 @@ interface AuthContextType {
   loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   updateLocalProfile: (updates: Partial<UserProfile>) => void;
+  users: UserProfile[];
 }
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
@@ -20,6 +21,7 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -68,12 +70,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       } else {
         setProfile(null);
+        setUsers([]);
       }
       setLoading(false);
     });
 
     return unsubscribe;
   }, []);
+
+  useEffect(() => {
+    if (!profile) return;
+    
+    // Nghe lén thay đổi của toàn bộ bảng users (chỉ 1 lần duy nhất cho toàn app)
+    const unsubscribeUsers = onSnapshot(collection(db, 'users'), (snapshot: any) => {
+      const fetchedUsers = snapshot.docs.map((doc: any) => doc.data() as UserProfile);
+      setUsers(fetchedUsers);
+    });
+
+    return () => unsubscribeUsers();
+  }, [profile]);
 
   const loginWithGoogle = async () => {
     try {
@@ -99,7 +114,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, loginWithGoogle, logout, updateLocalProfile }}>
+    <AuthContext.Provider value={{ user, profile, loading, loginWithGoogle, logout, updateLocalProfile, users }}>
       {children}
     </AuthContext.Provider>
   );

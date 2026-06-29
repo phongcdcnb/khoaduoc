@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { doc, getDocs, collection, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import { useAuth } from '../contexts/AuthContext';
 import type { UserProfile, Task } from '../types';
 import { X } from 'lucide-react';
 import { format } from 'date-fns';
@@ -19,7 +20,8 @@ export default function EditTaskModal({ isOpen, onClose, adminId, task }: Props)
   const [collaboratorIds, setCollaboratorIds] = useState<string[]>([]);
   const [deadlineDate, setDeadlineDate] = useState('');
   const [deadlineTime, setDeadlineTime] = useState('');
-  const [users, setUsers] = useState<UserProfile[]>([]);
+  const { users } = useAuth();
+  const [availableUsers, setAvailableUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -31,13 +33,9 @@ export default function EditTaskModal({ isOpen, onClose, adminId, task }: Props)
       setDeadlineDate(format(task.deadline, 'yyyy-MM-dd'));
       setDeadlineTime(format(task.deadline, 'HH:mm'));
 
-      const fetchUsers = async () => {
-        const snap = await getDocs(collection(db, 'users'));
-        setUsers(snap.docs.map(d => d.data() as UserProfile).filter(u => u.status === 'approved' && u.uid !== adminId));
-      };
-      fetchUsers();
+      setAvailableUsers(users.filter(u => u.status === 'approved' && u.uid !== adminId));
     }
-  }, [isOpen, task, adminId]);
+  }, [isOpen, task, adminId, users]);
 
   const handleToggleCollaborator = (uid: string) => {
     if (collaboratorIds.includes(uid)) {
@@ -97,7 +95,7 @@ export default function EditTaskModal({ isOpen, onClose, adminId, task }: Props)
               setCollaboratorIds(prev => prev.filter(id => id !== e.target.value));
             }} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all">
               <option value="">-- Chọn nhân viên --</option>
-              {users.map(u => (
+              {availableUsers.map(u => (
                 <option key={u.uid} value={u.uid}>{u.displayName} ({u.position})</option>
               ))}
             </select>
@@ -106,10 +104,10 @@ export default function EditTaskModal({ isOpen, onClose, adminId, task }: Props)
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-1">Người phối hợp (Tuỳ chọn)</label>
               <div className="max-h-32 overflow-y-auto bg-slate-50 border border-slate-200 rounded-xl p-2 space-y-1">
-                {users.filter(u => u.uid !== assigneeId).length === 0 ? (
+                {availableUsers.filter(u => u.uid !== assigneeId).length === 0 ? (
                   <p className="text-sm text-slate-400 p-2 italic">Không có nhân sự khác</p>
                 ) : (
-                  users.filter(u => u.uid !== assigneeId).map(u => (
+                  availableUsers.filter(u => u.uid !== assigneeId).map(u => (
                     <label key={u.uid} className="flex items-center gap-3 p-2 hover:bg-slate-100 rounded-lg cursor-pointer transition-colors">
                       <input 
                         type="checkbox" 

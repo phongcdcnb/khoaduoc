@@ -1,35 +1,18 @@
-import { useEffect, useState } from 'react';
-import { collection, getDocs, updateDoc, doc } from 'firebase/firestore';
+import { updateDoc, doc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import type { UserProfile } from '../types';
+import { useAuth } from '../contexts/AuthContext';
+
 import { CheckCircle, ShieldBan, ShieldCheck } from 'lucide-react';
 
 export default function UserManagement() {
-  const [users, setUsers] = useState<UserProfile[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const fetchUsers = async () => {
-    try {
-      const snapshot = await getDocs(collection(db, 'users'));
-      const fetchedUsers = snapshot.docs.map(doc => doc.data() as UserProfile);
-      // Sort so admins are first, then others
-      fetchedUsers.sort((a, b) => (b.role === 'admin' ? 1 : 0) - (a.role === 'admin' ? 1 : 0));
-      setUsers(fetchedUsers);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+  const { users } = useAuth();
+  // Sort so admins are first, then others
+  const sortedUsers = [...users].sort((a, b) => (b.role === 'admin' ? 1 : 0) - (a.role === 'admin' ? 1 : 0));
 
   const handleApprove = async (uid: string) => {
     try {
       await updateDoc(doc(db, 'users', uid), { status: 'approved' });
-      setUsers(users.map(u => u.uid === uid ? { ...u, status: 'approved' } : u));
+      // Không cần setUsers thủ công vì onSnapshot trong AuthContext sẽ tự cập nhật
     } catch (error) {
       alert("Lỗi khi duyệt");
     }
@@ -39,16 +22,15 @@ export default function UserManagement() {
     if (!window.confirm("Bạn có chắc chắn muốn thu hồi quyền truy cập của nhân viên này? Họ sẽ không thể vào xem công việc nữa.")) return;
     try {
       await updateDoc(doc(db, 'users', uid), { status: 'pending' });
-      setUsers(users.map(u => u.uid === uid ? { ...u, status: 'pending' } : u));
     } catch (error) {
       alert("Lỗi khi thu hồi quyền");
     }
   };
 
-  if (loading) return <div className="text-slate-500 font-medium text-center py-10">Đang tải danh sách nhân sự...</div>;
+  if (!users || users.length === 0) return <div className="text-slate-500 font-medium text-center py-10">Đang tải danh sách nhân sự...</div>;
 
-  const pendingUsers = users.filter(u => u.status === 'pending');
-  const approvedUsers = users.filter(u => u.status === 'approved');
+  const pendingUsers = sortedUsers.filter(u => u.status === 'pending');
+  const approvedUsers = sortedUsers.filter(u => u.status === 'approved');
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8">

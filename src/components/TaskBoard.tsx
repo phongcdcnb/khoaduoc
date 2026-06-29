@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
-import { collection, query, onSnapshot, orderBy, doc, updateDoc, getDocs } from 'firebase/firestore';
+import { useState } from 'react';
+import { updateDoc, doc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import { useAuth } from '../contexts/AuthContext';
 import type { Task, UserProfile } from '../types';
 import { Clock, CheckCircle, AlertCircle, PlayCircle, MessageSquare, CalendarClock, Trash2, Edit2, History } from 'lucide-react';
 import { format } from 'date-fns';
@@ -13,51 +14,23 @@ import TaskHistoryModal from './TaskHistoryModal';
 
 interface Props {
   currentUser: UserProfile;
+  tasks: Task[];
 }
 
-export default function TaskBoard({ currentUser }: Props) {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [usersMap, setUsersMap] = useState<Record<string, string>>({});
+export default function TaskBoard({ currentUser, tasks }: Props) {
+  const { users } = useAuth();
   
+  // Tạo usersMap từ context thay vì fetch
+  const usersMap = users.reduce((acc, curr) => {
+    acc[curr.uid] = curr.displayName;
+    return acc;
+  }, {} as Record<string, string>);
+
   const [noteModalTaskId, setNoteModalTaskId] = useState<string | null>(null);
   const [extendModalTaskId, setExtendModalTaskId] = useState<string | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [historyModalTaskId, setHistoryModalTaskId] = useState<string | null>(null);
   const isAdmin = currentUser.role === 'admin';
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      const snap = await getDocs(collection(db, 'users'));
-      const map: Record<string, string> = {};
-      snap.docs.forEach(d => {
-        map[d.data().uid] = d.data().displayName;
-      });
-      setUsersMap(map);
-    };
-    fetchUsers();
-
-    const q = query(collection(db, 'tasks'), orderBy('taskNumber', 'desc'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      let fetchedTasks = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Task));
-      
-      // Tính toán lại Số thứ tự (taskNumber) động dựa trên các công việc chưa bị xóa
-      // Sắp xếp theo thời gian giao việc (assignedAt) tăng dần (cũ nhất -> mới nhất)
-      const activeSorted = fetchedTasks
-        .filter(t => !t.isDeleted)
-        .sort((a, b) => a.assignedAt - b.assignedAt);
-        
-      fetchedTasks = fetchedTasks.map(task => {
-        if (!task.isDeleted) {
-          // Ghi đè taskNumber trong bộ nhớ bằng số thứ tự mới
-          task.taskNumber = activeSorted.findIndex(t => t.id === task.id) + 1;
-        }
-        return task;
-      });
-
-      setTasks(fetchedTasks);
-    });
-    return unsubscribe;
-  }, []);
 
   const visibleTasks = (isAdmin ? tasks : tasks.filter(t => t.assigneeId === currentUser.uid || (t.collaboratorIds && t.collaboratorIds.includes(currentUser.uid)))).filter(t => !t.isDeleted);
 

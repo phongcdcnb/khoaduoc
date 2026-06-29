@@ -15,6 +15,7 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState<'tasks' | 'users' | 'trash'>('tasks');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const isAdmin = profile?.role === 'admin';
   const isFirstLoad = useRef(true);
 
@@ -29,13 +30,32 @@ const Dashboard = () => {
 
     const q = query(collection(db, 'tasks'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
+      let fetchedTasks = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Task));
+
+      // Tính toán taskNumber động
+      const activeSorted = fetchedTasks
+        .filter(t => !t.isDeleted)
+        .sort((a, b) => a.assignedAt - b.assignedAt);
+        
+      fetchedTasks = fetchedTasks.map(task => {
+        if (!task.isDeleted) {
+          task.taskNumber = activeSorted.findIndex(t => t.id === task.id) + 1;
+        }
+        return task;
+      });
+      
+      // Sắp xếp desc theo taskNumber để hiển thị mới nhất lên đầu
+      fetchedTasks.sort((a, b) => b.taskNumber - a.taskNumber);
+
+      setTasks(fetchedTasks);
+
       if (isFirstLoad.current) {
         isFirstLoad.current = false;
         return;
       }
 
       snapshot.docChanges().forEach((change) => {
-        if (change.doc.metadata.hasPendingWrites) return; // Bỏ qua nếu chính mình là người thay đổi
+        if (change.doc.metadata.hasPendingWrites) return;
 
         const task = change.doc.data() as Task;
         const isRelated = profile.role === 'admin' || task.assigneeId === profile.uid || (task.collaboratorIds && task.collaboratorIds.includes(profile.uid));
@@ -142,9 +162,9 @@ const Dashboard = () => {
         {activeTab === 'users' && isAdmin ? (
           <UserManagement />
         ) : activeTab === 'trash' && isAdmin ? (
-          <TrashBoard />
+          <TrashBoard tasks={tasks} />
         ) : (
-          <TaskBoard currentUser={profile} />
+          <TaskBoard currentUser={profile} tasks={tasks} />
         )}
       </main>
 

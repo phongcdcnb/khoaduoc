@@ -1,34 +1,21 @@
-import { useEffect, useState } from 'react';
-import { collection, query, onSnapshot, orderBy, doc, updateDoc, deleteDoc, getDocs } from 'firebase/firestore';
+import { updateDoc, doc, deleteDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import { useAuth } from '../contexts/AuthContext';
 import type { Task } from '../types';
 import { RefreshCcw, Trash2, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 
-export default function TrashBoard() {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [usersMap, setUsersMap] = useState<Record<string, string>>({});
+interface Props {
+  tasks: Task[];
+}
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      const snap = await getDocs(collection(db, 'users'));
-      const map: Record<string, string> = {};
-      snap.docs.forEach(d => {
-        map[d.data().uid] = d.data().displayName;
-      });
-      setUsersMap(map);
-    };
-    fetchUsers();
-
-    const q = query(collection(db, 'tasks'), orderBy('taskNumber', 'desc'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const fetchedTasks = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Task));
-      // Chỉ lấy các công việc đã bị xóa
-      setTasks(fetchedTasks.filter(t => t.isDeleted));
-    });
-    return unsubscribe;
-  }, []);
+export default function TrashBoard({ tasks }: Props) {
+  const { users } = useAuth();
+  const usersMap = users.reduce((acc, curr) => {
+    acc[curr.uid] = curr.displayName;
+    return acc;
+  }, {} as Record<string, string>);
 
   const handleRestore = async (taskId: string) => {
     if(window.confirm("Khôi phục công việc này về bảng chính?")) {
@@ -42,6 +29,8 @@ export default function TrashBoard() {
     }
   };
 
+  const deletedTasks = tasks.filter(t => t.isDeleted);
+
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 min-h-[500px]">
       <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
@@ -54,14 +43,14 @@ export default function TrashBoard() {
         </div>
       </div>
 
-      {tasks.length === 0 ? (
+      {deletedTasks.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-slate-400">
           <Trash2 size={48} className="mb-4 opacity-20" />
           <p className="font-medium">Thùng rác trống</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {tasks.map(task => (
+          {deletedTasks.map(task => (
             <div key={task.id} className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col opacity-75 hover:opacity-100 transition-opacity">
               <div className="flex justify-between items-start mb-3">
                 <span className="bg-slate-200 text-slate-600 text-xs font-black px-2.5 py-1 rounded-md tracking-wider">
