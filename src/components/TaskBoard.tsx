@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { collection, query, onSnapshot, orderBy, doc, updateDoc, getDocs } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import type { Task, UserProfile } from '../types';
-import { Clock, CheckCircle, AlertCircle, PlayCircle, MessageSquare, CalendarClock } from 'lucide-react';
+import { Clock, CheckCircle, AlertCircle, PlayCircle, MessageSquare, CalendarClock, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import CountdownTimer from './CountdownTimer';
@@ -41,7 +41,13 @@ export default function TaskBoard({ currentUser }: Props) {
     return unsubscribe;
   }, []);
 
-  const visibleTasks = isAdmin ? tasks : tasks.filter(t => t.assigneeId === currentUser.uid || (t.collaboratorIds && t.collaboratorIds.includes(currentUser.uid)));
+  const visibleTasks = (isAdmin ? tasks : tasks.filter(t => t.assigneeId === currentUser.uid || (t.collaboratorIds && t.collaboratorIds.includes(currentUser.uid)))).filter(t => !t.isDeleted);
+
+  const handleMoveToTrash = async (taskId: string) => {
+    if(window.confirm("Chuyển công việc này vào thùng rác?")) {
+      await updateDoc(doc(db, 'tasks', taskId), { isDeleted: true });
+    }
+  };
 
   const handleReceiveTask = async (taskId: string) => {
     if(window.confirm("Xác nhận bắt đầu nhận công việc này?")) {
@@ -112,6 +118,15 @@ export default function TaskBoard({ currentUser }: Props) {
                 title="Gia hạn Deadline"
               >
                 <CalendarClock size={14} /> Gia hạn
+              </button>
+            )}
+            {isAdmin && (
+              <button 
+                onClick={() => handleMoveToTrash(task.id)}
+                className="p-1.5 rounded-md flex items-center gap-1 text-xs font-bold border bg-white text-red-600 border-red-200 hover:bg-red-50 transition-colors"
+                title="Xóa công việc (Đưa vào Thùng rác)"
+              >
+                <Trash2 size={14} /> Xóa
               </button>
             )}
           </div>

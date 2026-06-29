@@ -32,4 +32,5 @@ export interface Task {
   status: TaskStatus;
   notes: string;
   completedAt?: number;
+  isDeleted?: boolean;
 }

@@ -1,14 +1,15 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { LogOut, Plus, Users, LayoutDashboard, Edit2 } from 'lucide-react';
+import { LogOut, Plus, Users, LayoutDashboard, Edit2, Trash2 } from 'lucide-react';
 import UserManagement from '../components/UserManagement';
 import TaskBoard from '../components/TaskBoard';
 import CreateTaskModal from '../components/CreateTaskModal';
 import EditProfileModal from '../components/EditProfileModal';
+import TrashBoard from '../components/TrashBoard';
 
 const Dashboard = () => {
   const { profile, logout } = useAuth();
-  const [activeTab, setActiveTab] = useState<'tasks' | 'users'>('tasks');
+  const [activeTab, setActiveTab] = useState<'tasks' | 'users' | 'trash'>('tasks');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
   const isAdmin = profile?.role === 'admin';
@@ -29,12 +30,20 @@ const Dashboard = () => {
                 <LayoutDashboard size={16} className="sm:w-5 sm:h-5" /> Bảng việc
               </button>
               {isAdmin && (
-                <button 
-                  onClick={() => setActiveTab('users')}
-                  className={`px-3 py-2 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm transition-all flex items-center gap-1 sm:gap-2 ${activeTab === 'users' ? 'bg-primary-600 text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'}`}
-                >
-                  <Users size={16} className="sm:w-5 sm:h-5" /> Nhân sự
-                </button>
+                <>
+                  <button 
+                    onClick={() => setActiveTab('users')}
+                    className={`px-3 py-2 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm transition-all flex items-center gap-1 sm:gap-2 ${activeTab === 'users' ? 'bg-primary-600 text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'}`}
+                  >
+                    <Users size={16} className="sm:w-5 sm:h-5" /> Nhân sự
+                  </button>
+                  <button 
+                    onClick={() => setActiveTab('trash')}
+                    className={`px-3 py-2 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm transition-all flex items-center gap-1 sm:gap-2 ${activeTab === 'trash' ? 'bg-red-600 text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'}`}
+                  >
+                    <Trash2 size={16} className="sm:w-5 sm:h-5" /> Thùng rác
+                  </button>
+                </>
               )}
             </nav>
           </div>
@@ -82,6 +91,8 @@ const Dashboard = () => {
       <main className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-4 sm:py-8">
         {activeTab === 'users' && isAdmin ? (
           <UserManagement />
+        ) : activeTab === 'trash' && isAdmin ? (
+          <TrashBoard currentUser={profile} />
         ) : (
           <TaskBoard currentUser={profile} />
         )}
