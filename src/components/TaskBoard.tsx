@@ -108,7 +108,7 @@ export default function TaskBoard({ currentUser, tasks }: Props) {
 
         {/* Nút thao tác phụ */}
         <div className="flex flex-wrap gap-2 mb-4">
-          {(isAdmin || currentUser.uid === task.assigneeId || (task.collaboratorIds && task.collaboratorIds.includes(currentUser.uid))) && (
+          {(isAdmin || currentUser.uid === task.assigneeId || (task.collaboratorIds && task.collaboratorIds.includes(currentUser.uid))) && task.status !== 'completed' && (
             <button 
               onClick={() => setNoteModalTaskId(task.id)}
               className={`flex-1 min-w-[80px] py-2 px-1 rounded-lg flex items-center justify-center gap-1.5 text-xs font-bold border transition-colors ${task.notes ? 'bg-yellow-50 text-yellow-700 border-yellow-200 hover:bg-yellow-100' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'}`}
