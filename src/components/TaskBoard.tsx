@@ -34,7 +34,7 @@ export default function TaskBoard({ currentUser, tasks }: Props) {
   const [historyModalTaskId, setHistoryModalTaskId] = useState<string | null>(null);
   const isAdmin = currentUser.role === 'admin';
 
-  const visibleTasks = (isAdmin ? tasks : tasks.filter(t => t.assigneeId === currentUser.uid || (t.collaboratorIds && t.collaboratorIds.includes(currentUser.uid)))).filter(t => !t.isDeleted);
+  const visibleTasks = tasks.filter(t => !t.isDeleted);
 
   const handleMoveToTrash = async (taskId: string) => {
     if(window.confirm("Chuyển công việc này vào thùng rác?")) {
@@ -108,15 +108,17 @@ export default function TaskBoard({ currentUser, tasks }: Props) {
 
         {/* Nút thao tác phụ */}
         <div className="flex flex-wrap gap-2 mb-4">
-          <button 
-            onClick={() => setNoteModalTaskId(task.id)}
-            className={`flex-1 min-w-[80px] py-2 px-1 rounded-lg flex items-center justify-center gap-1.5 text-xs font-bold border transition-colors ${task.notes ? 'bg-yellow-50 text-yellow-700 border-yellow-200 hover:bg-yellow-100' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'}`}
-            title="Ghi chú công việc"
-          >
-            <MessageSquare size={14} /> Ghi chú
-          </button>
+          {(isAdmin || currentUser.uid === task.assigneeId || (task.collaboratorIds && task.collaboratorIds.includes(currentUser.uid))) && (
+            <button 
+              onClick={() => setNoteModalTaskId(task.id)}
+              className={`flex-1 min-w-[80px] py-2 px-1 rounded-lg flex items-center justify-center gap-1.5 text-xs font-bold border transition-colors ${task.notes ? 'bg-yellow-50 text-yellow-700 border-yellow-200 hover:bg-yellow-100' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'}`}
+              title="Ghi chú công việc"
+            >
+              <MessageSquare size={14} /> Ghi chú
+            </button>
+          )}
           
-          {currentUser.uid === task.assigneeId && task.status !== 'completed' && (
+          {(currentUser.uid === task.assigneeId || (task.collaboratorIds && task.collaboratorIds.includes(currentUser.uid))) && task.status === 'in_progress' && (
             <button 
               onClick={() => setProgressModalTaskId(task.id)}
               className="flex-1 min-w-[80px] py-2 px-1 rounded-lg flex items-center justify-center gap-1.5 text-xs font-bold border bg-white text-emerald-600 border-emerald-200 hover:bg-emerald-50 transition-colors"
@@ -166,12 +168,12 @@ export default function TaskBoard({ currentUser, tasks }: Props) {
 
         <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-3 mt-auto">
           {task.status === 'assigned' && (
-             !isAdmin ? 
+             currentUser.uid === task.assigneeId ? 
               <button onClick={() => handleReceiveTask(task.id)} className="w-full bg-blue-600 text-white text-sm font-bold py-2.5 rounded-xl hover:bg-blue-700 transition-colors flex justify-center items-center gap-2"><PlayCircle size={18}/> Nhận việc ngay</button>
-             : <span className="text-sm text-slate-500 font-medium italic text-center w-full bg-slate-50 py-2 rounded-lg">Chờ nhân viên nhận</span>
+             : <span className="text-sm text-slate-500 font-medium italic text-center w-full bg-slate-50 py-2 rounded-lg">Chờ người phụ trách nhận</span>
           )}
           {task.status === 'in_progress' && (
-             !isAdmin ? 
+             currentUser.uid === task.assigneeId ? 
               <button onClick={() => handleCompleteTask(task.id)} className="w-full bg-emerald-600 text-white text-sm font-bold py-2.5 rounded-xl hover:bg-emerald-700 transition-colors flex justify-center items-center gap-2"><CheckCircle size={18}/> Báo cáo Hoàn thành</button>
              : <span className="text-sm text-orange-500 font-bold flex items-center justify-center gap-2 w-full bg-orange-50 py-2 rounded-lg border border-orange-100"><Clock size={16}/> Đang thực hiện</span>
           )}
